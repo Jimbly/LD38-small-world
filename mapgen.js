@@ -3,7 +3,7 @@
 const FastSimplexNoise = require('fast-simplex-noise').default;
 const noiseGen = new FastSimplexNoise({ frequency: 0.01, max: 100, min: 0, octaves: 8 });
 
-const res = 40;
+const res = 30;
 const zoom = 10;
 const threshold = 70;
 

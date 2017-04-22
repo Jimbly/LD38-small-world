@@ -27,6 +27,7 @@
         </div>
         <div id="play" class="screen vflex" style="display: none;">
           <div id="status" style="pointer-events: auto;">
+            <div class="header" id="month">Month %d, Day %d</span></div>
             <div class="header">Ship Cargo <span id="status_cargo">%d/%d</span></div>
             <div class="line">Food:  <span id="status_food">%d</span><span class="icon icon-food"></span></div>
             <div class="line">Population: <span id="status_pop">%d</span><span class="icon icon-pop"></span></div>
@@ -41,7 +42,11 @@
                 <button class="porttrans" id="give-pop-10">Give 10</button>
                 <button class="porttrans" id="give-pop-max">Give MAX</button><br/>
               </div>
-              <div class="line not-port-needpop">Food: ???
+              <div class="line">Agriculture: <span id="port_ag">%d</span></div>
+              <div class="line port-needpop">Harvesters: <span id="port_harv">%d</span><br class="port-needag"/>
+                <button class="porttrans port-needag" id="build-harv-1">Build 1</button>
+                <button class="porttrans port-needag" id="build-harv-10">Build 10</button>
+                <button class="porttrans port-needag" id="build-harv-max">Build MAX</button><br/>
               </div>
               <div class="line port-needpop">Food: <span id="port_food">%d</span><br/>
                 <button class="porttrans" id="take-food-1">Take 1</button>
@@ -50,6 +55,11 @@
                 <button class="porttrans" id="give-food-1">Give 1</button>
                 <button class="porttrans" id="give-food-10">Give 10</button>
                 <button class="porttrans" id="give-food-max">Give MAX</button><br/>
+              </div>
+              <div class="line port-needpop">Mines: <span id="port_mine">%d</span><br/>
+                <button class="porttrans" id="build-mine-1">Build 1</button>
+                <button class="porttrans" id="build-mine-10">Build 10</button>
+                <button class="porttrans" id="build-mine-max">Build MAX</button><br/>
               </div>
               <div class="line port-needpop">Money: <span id="port_money">%d</span><br/>
                 <button class="porttrans" id="take-money-1">Take 1</button>

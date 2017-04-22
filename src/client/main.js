@@ -74,9 +74,33 @@ TurbulenzEngine.onload = function onloadFn()
     viewportRectangle : mathDevice.v4Build(0, 0, game_width, game_height)
   };
 
-  var global_timer = 0;
-  var game_state;
+  function htmlPos(x, y) {
+    const ymin = 0;
+    const ymax = game_height;
+    const xmin = 0;
+    const xmax = game_width;
+    return [100 * (x - xmin) / (xmax - xmin), 100 * (y - ymin) / (ymax - ymin)];
+  }
 
+  function notify(x, y, msg) {
+    let pos = htmlPos(x, y);
+    let child = $('<div class="floater" style="left: ' + pos[0] + '%; top: ' + pos[1] + '%;">' + msg + '</div>');
+    $('#dynamic_text').append(child);
+    setTimeout(function () {
+      child.addClass('fade');
+    }, 1);
+    setTimeout(function () {
+      child.remove();
+    }, 5000);
+  }
+
+  let global_timer = 0;
+  let game_state;
+
+
+  const TICK_TIME = 10000;
+  let tick_countdown;
+  let month_index = 1;
   let map_data;
   let port_data;
   let cargo;
@@ -86,18 +110,21 @@ TurbulenzEngine.onload = function onloadFn()
   function loadGraphics() {
     const spriteSize = 8;
     map_data = map.map();
+    tick_countdown = TICK_TIME * 2;
     port_data = {};
-    port_data['15_22'] = {
+    port_data['19,12'] = {
       pop: 1000,
-      food: 200,
-      money: 0,
+      food: 240,
+      money: 200,
       ag: 0,
+      harv: 0,
+      mine: 1000,
     };
     cargo = {
       max: 100,
-      pop: 0,
+      pop: 20,
       food: 0,
-      money: 0,
+      money: 80,
     };
     tile_size = game_height / map_data.length;
     map_tiles.water = createSprite('water.png', {
@@ -122,6 +149,13 @@ TurbulenzEngine.onload = function onloadFn()
       origin: [-tile_size/6,-tile_size/6],
     });
     map_tiles.port = createSprite('port.png', {
+      width : tile_size,
+      height : tile_size,
+      rotation : 0,
+      textureRectangle : mathDevice.v4Build(0, 0, spriteSize, spriteSize),
+      origin: [0,0],
+    });
+    map_tiles.port2 = createSprite('port2.png', {
       width : tile_size,
       height : tile_size,
       rotation : 0,
@@ -160,15 +194,15 @@ TurbulenzEngine.onload = function onloadFn()
     $('#play').show();
     game_state = play;
     hero = {
-      x: 20,
-      y: 20,
+      x: 18,
+      y: 11,
     };
     play(dt);
   }
 
 
   function doCharacter(dt) {
-    const speed = 0.003 * 2;
+    const speed = 0.003;
     let dx = 0;
     let dy = 0;
     if (input.isKeyDown(keyCodes.LEFT) || input.isKeyDown(keyCodes.A) || input.isPadButtonDown(0, padCodes.LEFT)) {
@@ -201,10 +235,35 @@ TurbulenzEngine.onload = function onloadFn()
     $('#status_food').text(cargo.food);
     $('#status_money').text(cargo.money);
     $('#status_cargo').text(total + '/' + cargo.max);
-
   }
+
+  const POP_PER_FOOD = 50;
+  const POP_PER_AG = 3;
+  const COST = {
+    harv: 10,
+    mine: 10,
+  };
+  function calcPortProd(pd) {
+    let food_produced = Math.min(pd.harv, Math.min(pd.ag, Math.floor(pd.pop / POP_PER_AG)));
+    let pop_not_making_food = Math.max(0, pd.pop - food_produced * POP_PER_AG);
+    let money_produced = Math.min(pop_not_making_food, pd.mine);
+    let food_needed = Math.ceil(pd.pop / POP_PER_FOOD);
+    let food_consumed = Math.min(food_needed, pd.food + food_produced);
+    let starved = Math.max(0, pd.pop - food_consumed * POP_PER_FOOD);
+    let died = starved ? Math.max(1, Math.floor(starved / 2)) : 0;
+    let babies = died ? 0 : Math.floor(pd.pop * 0.01);
+    return {
+      food_produced,
+      food_consumed,
+      died,
+      babies,
+      money_produced,
+    };
+  }
+
   let port_visible = false;
-  let port_has_pop = true;
+  let port_has_pop = null;
+  let port_has_ag = null;
   let in_port_key;
   function doPort() {
     let x = Math.floor(hero.x);
@@ -222,7 +281,7 @@ TurbulenzEngine.onload = function onloadFn()
       }
     }
     if (!in_port) {
-      return;
+      return false;
     }
     in_port_key = x + ',' + y;
     let key = in_port_key;
@@ -231,23 +290,46 @@ TurbulenzEngine.onload = function onloadFn()
       food: 0,
       money: 0,
       ag: 200,
+      harv: 0,
+      mine: 0,
     };
-    if (pd.pop) {
-      if (!port_has_pop) {
+    if (pd.pop || pd.food || pd.money) {
+      if (port_has_pop !== true) {
         port_has_pop = true;
         $('.port-needpop').show();
         $('.not-port-needpop').hide();
       }
+      if (pd.ag) {
+        if (port_has_ag !== true) {
+          port_has_ag = true;
+          $('.port-needag').show();
+        }
+      } else {
+        if (port_has_ag !== false) {
+          port_has_ag = false;
+          $('.port-needag').hide();
+        }
+      }
     } else {
-      if (port_has_pop) {
+      if (port_has_pop !== false) {
         port_has_pop = false;
         $('.port-needpop').hide();
         $('.not-port-needpop').show();
       }
+      if (port_has_ag !== false) {
+        port_has_ag = false;
+        $('.port-needag').hide();
+      }
     }
-    $('#port_pop').text(pd.pop);
-    $('#port_food').text(pd.food);
-    $('#port_money').text(pd.money);
+    let pp = calcPortProd(pd);
+    $('#port_pop').text(pd.pop + (pp.died ? ' (starving: ' + pp.died + '/mo)' : ' (+' + pp.babies + '/mo)'));
+    $('#port_food').text(pd.food +  ' (eat: ' + pp.food_consumed + '/mo)' );
+    $('#port_money').text(pd.money + ' (+' + pp.money_produced + '/mo)');
+    $('#port_ag').text(pd.ag ? pd.ag + ' (+' + pp.food_produced + ' food/mo)' : 'DEPLETED');
+    let max_harv = Math.floor(Math.min(pd.pop / POP_PER_AG, pd.ag));
+    $('#port_harv').html(pd.ag ? pd.harv + '/' + max_harv + ' (' + (Math.min(pd.harv, pd.ag) * POP_PER_AG) + '<span class="icon icon-pop"></span>)' : '(useless)');
+    $('#port_mine').html(pd.mine + '/' + Math.max(pd.pop - Math.min(max_harv, pd.harv) * POP_PER_AG, 0) + ' (' + pd.mine + '<span class="icon icon-pop"></span>)');
+    return true;
   }
 
   $('.porttrans').click(function (ev) {
@@ -260,12 +342,31 @@ TurbulenzEngine.onload = function onloadFn()
       amt = Math.min(amt, cargo[res]);
       cargo[res] -= amt;
       pd[res] += amt;
-    } else {
+    } else if (op === 'take') {
       let free_space = cargo.max - cargo.food - cargo.pop - cargo.money;
+      // if (res === 'money') {
+      //   free_space = Infinity;
+      // }
       amt = Math.min(amt, pd[res]);
       amt = Math.min(amt, free_space);
       cargo[res] += amt;
       pd[res] -= amt;
+    } else if (op === 'build') {
+      amt = Math.min(amt, Math.floor((pd.money + cargo.money) / COST[res]));
+      let max_harv = Math.floor(Math.min(pd.pop / POP_PER_AG, pd.ag));
+      let max_mines = Math.max(pd.pop - Math.min(max_harv, pd.harv) * POP_PER_AG, 0);
+      let max = res === 'harv' ? max_harv : max_mines;
+      amt = Math.min(amt, max - pd[res]);
+      amt = Math.max(amt, 0);
+      let cost = amt * COST[res];
+      if (cost < pd.money) {
+        pd.money -= cost;
+      } else {
+        cost -= pd.money;
+        pd.money = 0;
+        cargo.money -= cost;
+      }
+      pd[res] += amt;
     }
   });
 
@@ -282,8 +383,62 @@ TurbulenzEngine.onload = function onloadFn()
         }
         draw_list.queue(tile, ii*tile_size, jj*tile_size, z, [1, 1, 1, 1]);
         if (col[jj] === 'port') {
-          draw_list.queue(map_tiles.port, ii*tile_size, jj*tile_size, 2, [1, 1, 1, 1]);
+          let pd = port_data[ii + ',' + jj];
+          if (pd && !pd.pop && !pd.ag && !pd.food && !pd.money) {
+            // completely depleted
+          } else if (pd && pd.pop) {
+            draw_list.queue(map_tiles.port, ii*tile_size, jj*tile_size, 2, [1, 1, 1, 1]);
+          } else {
+            draw_list.queue(map_tiles.port2, ii*tile_size, jj*tile_size, 2, [1, 1, 1, 1]);
+          }
         }
+      }
+    }
+  }
+
+  function doTick(paused, dt) {
+    let tt = month_index === 1 ? 2 * TICK_TIME : TICK_TIME;
+    $('#month').html(
+      'Month ' + month_index + ', Day ' +
+      (Math.floor((tt - tick_countdown) / tt * 30) + 1) + '<br/>' +
+      (paused ? '(paused in port)' : '&nbsp;'));
+    if (paused) {
+      return;
+    }
+    tick_countdown -= dt;
+    if (tick_countdown > 0) {
+      return;
+    }
+    ++month_index;
+    tick_countdown = TICK_TIME;
+    for (let key in port_data) {
+      let lines = [];
+      let pd = port_data[key];
+      let pp = calcPortProd(pd);
+      pd.food += pp.food_produced;
+      pd.ag -= pp.food_produced;
+      pd.money += pp.money_produced;
+      pd.food -= pp.food_consumed;
+      pd.pop -= pp.died;
+      pd.pop += pp.babies;
+      let df = pp.food_produced - pp.food_consumed;
+      if (df) {
+        lines.push('<span class="' + (df < 0 ? 'meh">-' : 'good">+') + df + '<span class="icon icon-food"></span></span>');
+      }
+      if (pp.money_produced) {
+        lines.push('<span class="money">+' + pp.money_produced + '<span class="icon icon-money"></span></good>');
+      }
+      if (pp.died) {
+        lines.push('<span class="bad">-' + pp.died + '<span class="icon icon-pop"></span> (STARVING)</span>');
+      } else if (pp.babies) {
+        lines.push('<span class="meh">+' + pp.babies + '<span class="icon icon-pop"></span></span>');
+      }
+      if (lines.length) {
+        let pos = key.split(',').map(function (v) {
+          return Number(v);
+        });
+        notify(pos[0] * tile_size, pos[1] * tile_size,
+          lines.join('<br/>'));
       }
     }
   }
@@ -291,7 +446,8 @@ TurbulenzEngine.onload = function onloadFn()
   function play(dt) {
     drawMap();
     doCharacter(dt);
-    doPort();
+    let paused = doPort();
+    doTick(paused, dt);
   }
 
   function test(dt) {
