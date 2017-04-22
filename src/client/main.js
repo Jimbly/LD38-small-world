@@ -276,10 +276,30 @@ TurbulenzEngine.onload = function onloadFn()
   }
 
   let port_visible = false;
-  let port_has_pop = null;
-  let port_has_ag = null;
   let port_was_home = null;
   let in_port_key;
+
+  let cache = {};
+  function setField(field, html) {
+    if (cache[field] === html) {
+      return;
+    }
+    cache[field] = html;
+    $(field).html(html);
+  }
+  let showcache = {};
+  function showField(field, showvalue) {
+    if (showcache[field] === showvalue) {
+      return;
+    }
+    showcache[field] = showvalue;
+    if (showvalue) {
+      $(field).show();
+    } else {
+      $(field).hide();
+    }
+  }
+
   function doPort() {
     let x = Math.floor(hero.x);
     let y = Math.floor(hero.y);
@@ -310,41 +330,57 @@ TurbulenzEngine.onload = function onloadFn()
       mine: 0,
     };
     if (pd.pop || pd.food || pd.money) {
-      if (port_has_pop !== true) {
-        port_has_pop = true;
-        $('.port-needpop').show();
-        $('.not-port-needpop').hide();
-      }
+      showField('.port-needpop', true);
+      showField('.not-port-needpop', false);
       if (pd.ag) {
-        if (port_has_ag !== true) {
-          port_has_ag = true;
-          $('.port-needag').show();
-        }
+        showField('.port-needag', true);
       } else {
-        if (port_has_ag !== false) {
-          port_has_ag = false;
-          $('.port-needag').hide();
-        }
+        showField('.port-needag', false);
       }
     } else {
-      if (port_has_pop !== false) {
-        port_has_pop = false;
-        $('.port-needpop').hide();
-        $('.not-port-needpop').show();
-      }
-      if (port_has_ag !== false) {
-        port_has_ag = false;
-        $('.port-needag').hide();
-      }
+      showField('.port-needpop', false);
+      showField('.not-port-needpop', true);
+      showField('.port-needag', false);
     }
     let pp = calcPortProd(pd);
-    $('#port_pop').html(pd.pop + '<span class="icon icon-pop"></span>' + (pp.died ? ' (starving: ' + pp.died + '/mo)' : ' (+' + pp.babies + '/mo)'));
-    $('#port_food').html(pd.food +  '<span class="icon icon-food"></span> (eat: ' + pp.food_consumed + '/mo)' );
-    $('#port_money').html(pd.money + '<span class="icon icon-money"></span> (+' + pp.money_produced + '/mo)');
-    $('#port_ag').html(pd.ag ? pd.ag + ' (+' + pp.food_produced + ' <span class="icon icon-food"></span>/mo)' : 'DEPLETED');
+    setField('#port_pop', pd.pop + '<span class="icon icon-pop"></span>' + (pp.died ? ' (starving: ' + pp.died + '/mo)' : ' (+' + pp.babies + '/mo)'));
+    setField('#port_food', pd.food +  '<span class="icon icon-food"></span> (eat: ' + pp.food_consumed + '/mo)' );
+    setField('#port_money', pd.money + '<span class="icon icon-money"></span> (+' + pp.money_produced + '/mo)');
+    setField('#port_ag', pd.ag ? pd.ag + ' (+' + pp.food_produced + ' <span class="icon icon-food"></span>/mo)' : 'DEPLETED');
     let max_harv = Math.floor(Math.min(pd.pop / POP_PER_AG, pd.ag));
-    $('#port_harv').html(pd.ag ? pd.harv + '<span class="icon icon-harv"></span>/' + max_harv + ' (' + (Math.min(pd.harv, pd.ag) * POP_PER_AG) + '<span class="icon icon-pop"></span>)' : '(useless)');
-    $('#port_mine').html(pd.mine + '<span class="icon icon-mine"></span>' + (is_home_port ? '' : '/' + Math.max(pd.pop - Math.min(max_harv, pd.harv) * POP_PER_AG, 0)) + ' (' + pd.mine + '<span class="icon icon-pop"></span>)');
+    setField('#port_harv', pd.ag ? pd.harv + '<span class="icon icon-harv"></span>/' + max_harv + ' (' + (Math.min(pd.harv, pd.ag) * POP_PER_AG) + '<span class="icon icon-pop"></span>)' : '(useless)');
+    let max_mine = Math.max(pd.pop - Math.min(max_harv, pd.harv) * POP_PER_AG, 0);
+    setField('#port_mine', pd.mine + '<span class="icon icon-mine"></span>' + (is_home_port ? '' : '/' + max_mine) + ' (' + pd.mine + '<span class="icon icon-pop"></span>)');
+
+    let free_space = cargo.max - cargo.food - cargo.pop - cargo.money;
+    showField('#take-pop-1', pd.pop >= 1 && free_space);
+    showField('#take-pop-10', pd.pop >= 10 && free_space >= 10);
+    showField('#take-pop-max', pd.pop >= 2 && free_space >= 2);
+    showField('#take-money-1', pd.money >= 1 && free_space >= 1);
+    showField('#take-money-10', pd.money >= 10 && free_space >= 10);
+    showField('#take-money-max', pd.money >= 2 && free_space >= 2);
+    showField('#take-food-1', pd.food >= 1 && free_space >= 1);
+    showField('#take-food-10', pd.food >= 10 && free_space >= 10);
+    showField('#take-food-max', pd.food >= 2 && free_space >= 2);
+
+    showField('#give-pop-1', cargo.pop >= 1);
+    showField('#need-pop', !cargo.pop && !pd.pop && !pd.money && !pd.food);
+    showField('#give-pop-10', cargo.pop >= 10);
+    showField('#give-pop-max', cargo.pop >= 2);
+    showField('#give-money-1', cargo.money >= 1);
+    showField('#give-money-10', cargo.money >= 10);
+    showField('#give-money-max', cargo.money >= 2);
+    showField('#give-food-1', cargo.food >= 1);
+    showField('#give-food-10', cargo.food >= 10);
+    showField('#give-food-max', cargo.food >= 2);
+
+    showField('#build-mine-1', !is_home_port && pd.money + cargo.money >= COST.mine && pd.mine < max_mine);
+    showField('#build-mine-10', !is_home_port && pd.money + cargo.money >= COST.mine * 10 && max_mine - pd.mine >= 10);
+    showField('#build-mine-max', !is_home_port && pd.money + cargo.money >= COST.mine * 2 && max_mine - pd.mine >= 2);
+
+    showField('#build-harv-1', !is_home_port && pd.money + cargo.money >- COST.harv && pd.harv < max_harv);
+    showField('#build-harv-10', !is_home_port && pd.money + cargo.money >= COST.harv * 10 && max_harv - pd.harv >= 10);
+    showField('#build-harv-max', !is_home_port && pd.money + cargo.money >= COST.harv * 2 && max_harv - pd.harv >= 2);
 
     if (is_home_port) {
       if (port_was_home !== true) {
