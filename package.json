@@ -31,6 +31,7 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.13.3",
+    "fast-simplex-noise": "^3.2.0",
     "lodash": "^3.10.1",
     "random-seed": "^0.3.0"
   },

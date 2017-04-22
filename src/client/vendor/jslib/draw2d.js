@@ -1819,8 +1819,8 @@ var Draw2D = (function () {
             "name": "draw2D.cgfx",
             "samplers": {
                 "texture": {
-                    "MinFilter": 9985/* LINEAR_MIPMAP_NEAREST */ ,
-                    "MagFilter": 9729/* LINEAR */ ,
+                    "MinFilter": 9728 /*NEAREST*/,// 9985/* LINEAR_MIPMAP_NEAREST */ ,
+                    "MagFilter": 9728 /*NEAREST*/,// 9729/* LINEAR */ ,
                     "WrapS": 33071,
                     "WrapT": 33071
                 },

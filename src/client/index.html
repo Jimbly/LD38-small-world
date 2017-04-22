@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Powered by Turbulenz</title>
+    <title>LD38</title>
 
     <script src="vendor/jquery-1.11.3.min.js"></script>
 
@@ -18,19 +18,55 @@
         </a>
       </canvas>
       <div id="gamescreen" class="screenwrap">
+        <div id="dynamic_text"></div>
         <div id="title" class="screen vflex" style="display: none;">
           <div class="flexcenter" style="text-align: center;">
             <h1>Powered by Turbulenz</h1>
           </div>
           <div class="flexcenter" style="flex:3; text-align: center;"></div>
         </div>
-      </div>
-      <div id="fullscreen" class="screenwrap">
         <div id="play" class="screen vflex" style="display: none;">
+          <div id="status" style="pointer-events: auto;">
+            <div class="header">Ship Cargo <span id="status_cargo">%d/%d</span></div>
+            <div class="line">Food:  <span id="status_food">%d</span><span class="icon icon-food"></span></div>
+            <div class="line">Population: <span id="status_pop">%d</span><span class="icon icon-pop"></span></div>
+            <div class="line">Money: <span id="status_money">%d</span><span class="icon icon-money"></span></div>
+            <div id="port" style="display: none;">
+              <div class="header">Port</div>
+              <div class="line">Population: <span id="port_pop">%d</span><br/>
+                <button class="porttrans" id="take-pop-1">Take 1</button>
+                <button class="porttrans" id="take-pop-10">Take 10</button>
+                <button class="porttrans" id="take-pop-max">Take MAX</button><br/>
+                <button class="porttrans" id="give-pop-1">Give 1</button>
+                <button class="porttrans" id="give-pop-10">Give 10</button>
+                <button class="porttrans" id="give-pop-max">Give MAX</button><br/>
+              </div>
+              <div class="line not-port-needpop">Food: ???
+              </div>
+              <div class="line port-needpop">Food: <span id="port_food">%d</span><br/>
+                <button class="porttrans" id="take-food-1">Take 1</button>
+                <button class="porttrans" id="take-food-10">Take 10</button>
+                <button class="porttrans" id="take-food-max">Take MAX</button><br/>
+                <button class="porttrans" id="give-food-1">Give 1</button>
+                <button class="porttrans" id="give-food-10">Give 10</button>
+                <button class="porttrans" id="give-food-max">Give MAX</button><br/>
+              </div>
+              <div class="line port-needpop">Money: <span id="port_money">%d</span><br/>
+                <button class="porttrans" id="take-money-1">Take 1</button>
+                <button class="porttrans" id="take-money-10">Take 10</button>
+                <button class="porttrans" id="take-money-max">Take MAX</button><br/>
+                <button class="porttrans" id="give-money-1">Give 1</button>
+                <button class="porttrans" id="give-money-10">Give 10</button>
+                <button class="porttrans" id="give-money-max">Give MAX</button><br/>
+              </div>
+            </div>
+          </div>
           <div class="flexcenter" style="flex:1; text-align: center;"></div>
-          <div class="hflex" id="something">...</div>
+          <div class="hflex" id="something"></div>
           <div class="flexcenter" style="flex:1; text-align: center;"></div>
         </div>
+      </div>
+      <div id="fullscreen" class="screenwrap">
       </div>
       <script type="text/javascript">
         (function () {

@@ -60,3 +60,47 @@ canvas {
 .flexcenter {
   align-self: center;
 }
+
+#dynamic_text {
+  left: 0;
+  top: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%
+}
+
+#status {
+  position: absolute;
+  left: 75%;
+  top: 0%;
+  padding: 10px;
+}
+
+#status .header {
+  font-size: 1.2em;
+}
+#status .line {
+  padding-left: 20px;
+}
+#port .line {
+  padding-bottom: 20px;
+}
+#port {
+  padding-top: 40px;
+}
+
+.icon {
+  background-size: cover;
+  height: 18px;
+  width: 18px;
+  display: inline-block;
+}
+.icon-food {
+  background-image: url(img/food.png);
+}
+.icon-pop {
+  background-image: url(img/pop.png);
+}
+.icon-money {
+  background-image: url(img/money.png);
+}

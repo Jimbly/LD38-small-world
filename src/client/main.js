@@ -21,6 +21,7 @@ TurbulenzEngine.onload = function onloadFn()
   const input = require('./input.js').create(inputDevice, draw2D);
   const draw_list = require('./draw_list.js').create(draw2D);
   const random_seed = require('random-seed');
+  const map = require('./map.js');
 
   const camera = Camera.create(mathDevice);
   const lookAtPosition = mathDevice.v3Build(0.0, 0.0, 0.0);
@@ -76,6 +77,67 @@ TurbulenzEngine.onload = function onloadFn()
   var global_timer = 0;
   var game_state;
 
+  let map_data;
+  let port_data;
+  let cargo;
+  let map_tiles = {};
+  let tiles = {};
+  let tile_size;
+  function loadGraphics() {
+    const spriteSize = 8;
+    map_data = map.map();
+    port_data = {};
+    port_data['15_22'] = {
+      pop: 1000,
+      food: 200,
+      money: 0,
+      ag: 0,
+    };
+    cargo = {
+      max: 100,
+      pop: 0,
+      food: 0,
+      money: 0,
+    };
+    tile_size = game_height / map_data.length;
+    map_tiles.water = createSprite('water.png', {
+      width : tile_size,
+      height : tile_size,
+      rotation : 0,
+      textureRectangle : mathDevice.v4Build(0, 0, spriteSize, spriteSize),
+      origin: [0,0],
+    });
+    map_tiles.land = createSprite('land.png', {
+      width : tile_size,
+      height : tile_size,
+      rotation : 0,
+      textureRectangle : mathDevice.v4Build(0, 0, spriteSize, spriteSize),
+      origin: [0,0],
+    });
+    map_tiles.land_shadow = createSprite('land_shadow.png', {
+      width : tile_size,
+      height : tile_size,
+      rotation : 0,
+      textureRectangle : mathDevice.v4Build(0, 0, spriteSize, spriteSize),
+      origin: [-tile_size/6,-tile_size/6],
+    });
+    map_tiles.port = createSprite('port.png', {
+      width : tile_size,
+      height : tile_size,
+      rotation : 0,
+      textureRectangle : mathDevice.v4Build(0, 0, spriteSize, spriteSize),
+      origin: [0,0],
+    });
+    tiles.ship = createSprite('ship.png', {
+      width : tile_size,
+      height : tile_size,
+      rotation : 0,
+      textureRectangle : mathDevice.v4Build(0, 0, spriteSize, spriteSize),
+      origin: [tile_size/2,tile_size*0.60],
+    });
+
+  }
+
   function titleInit(dt) {
     $('.screen').hide();
     $('#title').show();
@@ -84,20 +146,152 @@ TurbulenzEngine.onload = function onloadFn()
   }
 
   function title(dt) {
-    test(dt);
-    if (false && 'ready') {
+    //test(dt);
+    if ('ready') {
       game_state = playInit;
     }
   }
 
+  let hero;
+
   function playInit(dt) {
+    loadGraphics();
     $('.screen').hide();
     $('#play').show();
     game_state = play;
+    hero = {
+      x: 20,
+      y: 20,
+    };
     play(dt);
   }
 
+
+  function doCharacter(dt) {
+    const speed = 0.003 * 2;
+    let dx = 0;
+    let dy = 0;
+    if (input.isKeyDown(keyCodes.LEFT) || input.isKeyDown(keyCodes.A) || input.isPadButtonDown(0, padCodes.LEFT)) {
+      dx = -1;
+    } else if (input.isKeyDown(keyCodes.RIGHT) || input.isKeyDown(keyCodes.D) || input.isPadButtonDown(0, padCodes.RIGHT)) {
+      dx = 1;
+    }
+    if (input.isKeyDown(keyCodes.UP) || input.isKeyDown(keyCodes.W) || input.isPadButtonDown(0, padCodes.UP)) {
+      dy = -1;
+    } else if (input.isKeyDown(keyCodes.DOWN) || input.isKeyDown(keyCodes.S) || input.isPadButtonDown(0, padCodes.DOWN)) {
+      dy = 1;
+    }
+    let lendelta = Math.max(1, Math.sqrt(dx*dx+dy*dy));
+
+    let newx = Math.min(map_data.length - 0.5, Math.max(0.5, hero.x + dx/lendelta * dt * speed));
+    let newy = Math.min(map_data[0].length - 0.5, Math.max(0.5, hero.y + dy/lendelta * dt * speed));
+    if (map_data[Math.floor(newx)][Math.floor(hero.y)] === 'land') {
+      newx = hero.x;
+    }
+    if (map_data[Math.floor(hero.x)][Math.floor(newy)] === 'land') {
+      newy = hero.y;
+    }
+    hero.x = newx;
+    hero.y = newy;
+    draw_list.queue(tiles.ship, hero.x*tile_size, hero.y*tile_size, 10, [1,1,1,1]);
+    // $('#something').text(Math.floor(hero.x) + ' ' + Math.floor(hero.y));
+
+    let total = cargo.pop + cargo.food + cargo.money;
+    $('#status_pop').text(cargo.pop);
+    $('#status_food').text(cargo.food);
+    $('#status_money').text(cargo.money);
+    $('#status_cargo').text(total + '/' + cargo.max);
+
+  }
+  let port_visible = false;
+  let port_has_pop = true;
+  let in_port_key;
+  function doPort() {
+    let x = Math.floor(hero.x);
+    let y = Math.floor(hero.y);
+    let in_port = map_data[x][y] === 'port';
+    if (in_port) {
+      if (!port_visible) {
+        $('#port').fadeIn();
+        port_visible = true;
+      }
+    } else {
+      if (port_visible) {
+        $('#port').fadeOut();
+        port_visible = false;
+      }
+    }
+    if (!in_port) {
+      return;
+    }
+    in_port_key = x + ',' + y;
+    let key = in_port_key;
+    let pd = port_data[key] = port_data[key] || {
+      pop: 0,
+      food: 0,
+      money: 0,
+      ag: 200,
+    };
+    if (pd.pop) {
+      if (!port_has_pop) {
+        port_has_pop = true;
+        $('.port-needpop').show();
+        $('.not-port-needpop').hide();
+      }
+    } else {
+      if (port_has_pop) {
+        port_has_pop = false;
+        $('.port-needpop').hide();
+        $('.not-port-needpop').show();
+      }
+    }
+    $('#port_pop').text(pd.pop);
+    $('#port_food').text(pd.food);
+    $('#port_money').text(pd.money);
+  }
+
+  $('.porttrans').click(function (ev) {
+    let split = ev.target.id.split('-');
+    let op = split[0];
+    let res = split[1];
+    let amt = Number(split[2]) || Infinity;
+    let pd = port_data[in_port_key];
+    if (op === 'give') {
+      amt = Math.min(amt, cargo[res]);
+      cargo[res] -= amt;
+      pd[res] += amt;
+    } else {
+      let free_space = cargo.max - cargo.food - cargo.pop - cargo.money;
+      amt = Math.min(amt, pd[res]);
+      amt = Math.min(amt, free_space);
+      cargo[res] += amt;
+      pd[res] -= amt;
+    }
+  });
+
+  function drawMap() {
+    for (let ii = 0; ii < map_data.length; ++ii) {
+      let col = map_data[ii];
+      for (let jj = 0; jj < col.length; ++jj) {
+        let tile = map_tiles.water;
+        let z = 1;
+        if (col[jj] === 'land') {
+          draw_list.queue(map_tiles.land_shadow, ii*tile_size, jj*tile_size, 2, [1, 1, 1, 0.8]);
+          tile = map_tiles.land;
+          z = 3;
+        }
+        draw_list.queue(tile, ii*tile_size, jj*tile_size, z, [1, 1, 1, 1]);
+        if (col[jj] === 'port') {
+          draw_list.queue(map_tiles.port, ii*tile_size, jj*tile_size, 2, [1, 1, 1, 1]);
+        }
+      }
+    }
+  }
+
   function play(dt) {
+    drawMap();
+    doCharacter(dt);
+    doPort();
   }
 
   function test(dt) {
