@@ -19,7 +19,7 @@
       </canvas>
       <div id="gamescreen" class="screenwrap">
         <div id="dynamic_text"></div>
-        <div id="title" class="screen vflex" style="display: none;">
+        <div id="title" class="screen vflex">
           <div class="flexcenter" style="text-align: center;">
             <h1>Exploitation - LD38</h1>
             <p>Loading...</p>
@@ -36,6 +36,8 @@
           </div>
           <div class="flexcenter" style="flex:3; text-align: center;"></div>
         </div>
+      </div>
+      <div id="fullscreen" class="screenwrap">
         <div id="play" class="screen vflex" style="display: none;">
           <div id="status" style="pointer-events: auto;">
             <div class="header" id="month">Month %d, Day %d</span></div>
@@ -44,12 +46,13 @@
             <div class="line">Population: <span id="status_pop">%d</span><span class="icon icon-pop"></span></div>
             <div class="line">Money: <span id="status_money">%d</span><span class="icon icon-money"></span></div>
             <div id="port" style="display: none;">
+              <div class="header" id="port-tip" style="padding-bottom: 20px; font-style: italic; color: #DFD;"></div>
               <div class="header">Port Inventory</div>
               <div class="line">Population: <span id="port_pop">%d</span><br/>
                 <span class="port-needpop">
-                  <button class="porttrans " id="take-pop-1">Take 1</button>
-                  <button class="porttrans port-needpop" id="take-pop-10">Take 10</button>
-                  <button class="porttrans port-needpop" id="take-pop-max">Take MAX</button><br/>
+                  <button class="porttrans" id="take-pop-1">Take 1</button>
+                  <button class="porttrans" id="take-pop-10">Take 10</button>
+                  <button class="porttrans" id="take-pop-max">Take MAX</button><br/>
                 </span>
                 <button class="porttrans" id="give-pop-1">Give 1</button>
                 <button class="porttrans" id="give-pop-10">Give 10</button>
@@ -78,6 +81,7 @@
                 <button class="porttrans" id="build-harv-1">Build 1</button>
                 <button class="porttrans" id="build-harv-10">Build 10</button>
                 <button class="porttrans" id="build-harv-max">Build MAX</button>
+                <div id="need-pop-harv">You must have at least 3<span class="icon icon-pop"></span> to build a Harvester<span class="icon icon-harv"></span></div>
                 <div class="tip"><span class="icon icon-harv"></span> + <span class="icon icon-pop"></span><span class="icon icon-pop"></span><span class="icon icon-pop"></span> = <span class="icon icon-food"></span> (depletes Agriculture)</div>
               </div>
               <div class="line port-needpop">Mines: <span id="port_mine">%d</span><br/>
@@ -93,8 +97,6 @@
           <div class="hflex" id="something"></div>
           <div class="flexcenter" style="flex:1; text-align: center;"></div>
         </div>
-      </div>
-      <div id="fullscreen" class="screenwrap">
       </div>
       <script type="text/javascript">
         (function () {

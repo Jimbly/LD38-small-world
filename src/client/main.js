@@ -381,6 +381,21 @@ TurbulenzEngine.onload = function onloadFn()
     showField('#build-harv-1', !is_home_port && pd.money + cargo.money >- COST.harv && pd.harv < max_harv);
     showField('#build-harv-10', !is_home_port && pd.money + cargo.money >= COST.harv * 10 && max_harv - pd.harv >= 10);
     showField('#build-harv-max', !is_home_port && pd.money + cargo.money >= COST.harv * 2 && max_harv - pd.harv >= 2);
+    showField('#need-pop-harv', pd.ag && pd.pop < 3);
+
+    if (pd.pop < 3 && pd.ag) {
+      showField('#port-tip', true);
+      setField('#port-tip', 'ADVICE: Give at least 3 Population<span class="icon icon-pop"></span> and build a Harvester<span class="icon icon-harv"></span> to generate Food<span class="icon icon-food"></span>');
+    } else if (pd.ag && pd.harv < pd.ag && pp.died) {
+      showField('#port-tip', true);
+      setField('#port-tip', 'ADVICE: Your people are starving build some Harvesters<span class="icon icon-harv"></span> to generate Food<span class="icon icon-food"></span>');
+    } else if (is_home_port && free_space === 0 && cargo.pop && cargo.money) {
+      showField('#port-tip', true);
+      setField('#port-tip', 'ADVICE: This is your home port, go drop the Population<span class="icon icon-pop"></span> in your Ship\'s Cargo at another port</span>');
+    } else {
+      showField('#port-tip', false);
+    }
+
 
     if (is_home_port) {
       if (port_was_home !== true) {
@@ -462,7 +477,7 @@ TurbulenzEngine.onload = function onloadFn()
 
   function doTick(paused, dt) {
     let tt = month_index === 1 ? 2 * TICK_TIME : TICK_TIME;
-    $('#month').html(
+    setField('#month',
       'Month ' + month_index + ', Day ' +
       (Math.floor((tt - tick_countdown) / tt * 30) + 1) + '<br/>' +
       (paused ? '(paused in port)' : '&nbsp;'));

@@ -78,7 +78,9 @@ canvas {
   position: absolute;
   left: 75%;
   top: 0%;
+  bottom: 0%;
   padding: 10px;
+  overflow-y: auto;
 }
 
 #status .header {
