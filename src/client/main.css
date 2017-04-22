@@ -156,3 +156,8 @@ canvas {
   --transform: scale(1.0);
   margin-top: -3em;
 }
+
+.tip {
+  color: #AAA;
+  font-size: 0.75rem;
+}

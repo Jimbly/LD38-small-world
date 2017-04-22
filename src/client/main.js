@@ -45,11 +45,14 @@ TurbulenzEngine.onload = function onloadFn()
     textures[texname] = textureManager.load(path, false);
     return textureManager.getInstance(path);
   }
+  let textures_loading = 0;
   function createSprite(texname, params) {
     const tex_inst = loadTexture(texname);
     params.texture = tex_inst.getTexture();
     const sprite = Draw2DSprite.create(params);
+    ++textures_loading;
     tex_inst.subscribeTextureChanged(function () {
+      --textures_loading;
       sprite.setTexture(tex_inst.getTexture());
     });
     return sprite;
@@ -107,12 +110,13 @@ TurbulenzEngine.onload = function onloadFn()
   let map_tiles = {};
   let tiles = {};
   let tile_size;
+  const HOME_PORT = '19,12';
   function loadGraphics() {
     const spriteSize = 8;
     map_data = map.map();
     tick_countdown = TICK_TIME * 2;
     port_data = {};
-    port_data['19,12'] = {
+    port_data[HOME_PORT] = {
       pop: 1000,
       food: 240,
       money: 200,
@@ -176,20 +180,30 @@ TurbulenzEngine.onload = function onloadFn()
     $('.screen').hide();
     $('#title').show();
     game_state = title;
+    loadGraphics();
     title(dt);
   }
 
   function title(dt) {
     //test(dt);
-    if ('ready') {
+    if (textures_loading === 0) {
       game_state = playInit;
     }
+  }
+
+  function winInit(dt) {
+    $('.screen').hide();
+    $('#win').show();
+    game_state = win;
+    win(dt);
+  }
+
+  function win(dt) {
   }
 
   let hero;
 
   function playInit(dt) {
-    loadGraphics();
     $('.screen').hide();
     $('#play').show();
     game_state = play;
@@ -264,6 +278,7 @@ TurbulenzEngine.onload = function onloadFn()
   let port_visible = false;
   let port_has_pop = null;
   let port_has_ag = null;
+  let port_was_home = null;
   let in_port_key;
   function doPort() {
     let x = Math.floor(hero.x);
@@ -284,6 +299,7 @@ TurbulenzEngine.onload = function onloadFn()
       return false;
     }
     in_port_key = x + ',' + y;
+    let is_home_port = in_port_key === HOME_PORT;
     let key = in_port_key;
     let pd = port_data[key] = port_data[key] || {
       pop: 0,
@@ -322,13 +338,25 @@ TurbulenzEngine.onload = function onloadFn()
       }
     }
     let pp = calcPortProd(pd);
-    $('#port_pop').text(pd.pop + (pp.died ? ' (starving: ' + pp.died + '/mo)' : ' (+' + pp.babies + '/mo)'));
-    $('#port_food').text(pd.food +  ' (eat: ' + pp.food_consumed + '/mo)' );
-    $('#port_money').text(pd.money + ' (+' + pp.money_produced + '/mo)');
-    $('#port_ag').text(pd.ag ? pd.ag + ' (+' + pp.food_produced + ' food/mo)' : 'DEPLETED');
+    $('#port_pop').html(pd.pop + '<span class="icon icon-pop"></span>' + (pp.died ? ' (starving: ' + pp.died + '/mo)' : ' (+' + pp.babies + '/mo)'));
+    $('#port_food').html(pd.food +  '<span class="icon icon-food"></span> (eat: ' + pp.food_consumed + '/mo)' );
+    $('#port_money').html(pd.money + '<span class="icon icon-money"></span> (+' + pp.money_produced + '/mo)');
+    $('#port_ag').html(pd.ag ? pd.ag + ' (+' + pp.food_produced + ' <span class="icon icon-food"></span>/mo)' : 'DEPLETED');
     let max_harv = Math.floor(Math.min(pd.pop / POP_PER_AG, pd.ag));
-    $('#port_harv').html(pd.ag ? pd.harv + '/' + max_harv + ' (' + (Math.min(pd.harv, pd.ag) * POP_PER_AG) + '<span class="icon icon-pop"></span>)' : '(useless)');
-    $('#port_mine').html(pd.mine + '/' + Math.max(pd.pop - Math.min(max_harv, pd.harv) * POP_PER_AG, 0) + ' (' + pd.mine + '<span class="icon icon-pop"></span>)');
+    $('#port_harv').html(pd.ag ? pd.harv + '<span class="icon icon-harv"></span>/' + max_harv + ' (' + (Math.min(pd.harv, pd.ag) * POP_PER_AG) + '<span class="icon icon-pop"></span>)' : '(useless)');
+    $('#port_mine').html(pd.mine + '<span class="icon icon-mine"></span>' + (is_home_port ? '' : '/' + Math.max(pd.pop - Math.min(max_harv, pd.harv) * POP_PER_AG, 0)) + ' (' + pd.mine + '<span class="icon icon-pop"></span>)');
+
+    if (is_home_port) {
+      if (port_was_home !== true) {
+        port_was_home = true;
+        $('.home-port').show();
+      }
+    } else {
+      if (port_was_home !== false) {
+        port_was_home = false;
+        $('.home-port').hide();
+      }
+    }
     return true;
   }
 
@@ -439,6 +467,9 @@ TurbulenzEngine.onload = function onloadFn()
         });
         notify(pos[0] * tile_size, pos[1] * tile_size,
           lines.join('<br/>'));
+      }
+      if (pd.money >= 44000) {
+        game_state = winInit;
       }
     }
   }

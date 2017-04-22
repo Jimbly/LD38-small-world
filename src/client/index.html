@@ -21,7 +21,18 @@
         <div id="dynamic_text"></div>
         <div id="title" class="screen vflex" style="display: none;">
           <div class="flexcenter" style="text-align: center;">
-            <h1>Powered by Turbulenz</h1>
+            <h1>Title goes here</h1>
+            <p>Loading...</p>
+          </div>
+          <div class="flexcenter" style="flex:3; text-align: center;"></div>
+        </div>
+        <div id="win" class="screen vflex" style="display: none;">
+          <div class="flexcenter" style="flex:1; text-align: center;"></div>
+          <div class="flexcenter" style="text-align: center;">
+            <h1>Congratulations!</h1>
+            <p>You've amassed 44000<span class="icon icon-money"></span> and can retire in luxury (preferably on a different planet)!</p>
+
+            <p>Thanks for playing!</p>
           </div>
           <div class="flexcenter" style="flex:3; text-align: center;"></div>
         </div>
@@ -33,20 +44,14 @@
             <div class="line">Population: <span id="status_pop">%d</span><span class="icon icon-pop"></span></div>
             <div class="line">Money: <span id="status_money">%d</span><span class="icon icon-money"></span></div>
             <div id="port" style="display: none;">
-              <div class="header">Port</div>
+              <div class="header">Port Inventory</div>
               <div class="line">Population: <span id="port_pop">%d</span><br/>
-                <button class="porttrans" id="take-pop-1">Take 1</button>
-                <button class="porttrans" id="take-pop-10">Take 10</button>
-                <button class="porttrans" id="take-pop-max">Take MAX</button><br/>
+                <button class="porttrans port-needpop" id="take-pop-1">Take 1</button>
+                <button class="porttrans port-needpop" id="take-pop-10">Take 10</button>
+                <button class="porttrans port-needpop" id="take-pop-max">Take MAX</button><br class="port-needpop"/>
                 <button class="porttrans" id="give-pop-1">Give 1</button>
                 <button class="porttrans" id="give-pop-10">Give 10</button>
                 <button class="porttrans" id="give-pop-max">Give MAX</button><br/>
-              </div>
-              <div class="line">Agriculture: <span id="port_ag">%d</span></div>
-              <div class="line port-needpop">Harvesters: <span id="port_harv">%d</span><br class="port-needag"/>
-                <button class="porttrans port-needag" id="build-harv-1">Build 1</button>
-                <button class="porttrans port-needag" id="build-harv-10">Build 10</button>
-                <button class="porttrans port-needag" id="build-harv-max">Build MAX</button><br/>
               </div>
               <div class="line port-needpop">Food: <span id="port_food">%d</span><br/>
                 <button class="porttrans" id="take-food-1">Take 1</button>
@@ -56,11 +61,6 @@
                 <button class="porttrans" id="give-food-10">Give 10</button>
                 <button class="porttrans" id="give-food-max">Give MAX</button><br/>
               </div>
-              <div class="line port-needpop">Mines: <span id="port_mine">%d</span><br/>
-                <button class="porttrans" id="build-mine-1">Build 1</button>
-                <button class="porttrans" id="build-mine-10">Build 10</button>
-                <button class="porttrans" id="build-mine-max">Build MAX</button><br/>
-              </div>
               <div class="line port-needpop">Money: <span id="port_money">%d</span><br/>
                 <button class="porttrans" id="take-money-1">Take 1</button>
                 <button class="porttrans" id="take-money-10">Take 10</button>
@@ -69,6 +69,21 @@
                 <button class="porttrans" id="give-money-10">Give 10</button>
                 <button class="porttrans" id="give-money-max">Give MAX</button><br/>
               </div>
+              <div class="header">Port Industry</div>
+              <div class="line">Agriculture: <span id="port_ag">%d</span></div>
+              <div class="line port-needag">Harvesters: <span id="port_harv">%d</span><br class="port-needag"/>
+                <button class="porttrans port-needag" id="build-harv-1">Build 1</button>
+                <button class="porttrans port-needag" id="build-harv-10">Build 10</button>
+                <button class="porttrans port-needag" id="build-harv-max">Build MAX</button>
+                <div class="tip"><span class="icon icon-harv"></span> + <span class="icon icon-pop"></span><span class="icon icon-pop"></span><span class="icon icon-pop"></span> = <span class="icon icon-food"></span> (depletes Agriculture)</div>
+              </div>
+              <div class="line port-needpop">Mines: <span id="port_mine">%d</span><br/>
+                <button class="porttrans" id="build-mine-1">Build 1</button>
+                <button class="porttrans" id="build-mine-10">Build 10</button>
+                <button class="porttrans" id="build-mine-max">Build MAX</button>
+                <div class="tip"><span class="icon icon-mine"></span> + <span class="icon icon-pop"></span> = <span class="icon icon-money"></span></div>
+              </div>
+              <div class="line home-port">Win Condition: 44000<span class="icon icon-money"></span></div>
             </div>
           </div>
           <div class="flexcenter" style="flex:1; text-align: center;"></div>
