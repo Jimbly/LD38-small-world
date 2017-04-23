@@ -163,3 +163,32 @@ canvas {
   color: #AAA;
   font-size: 0.75rem;
 }
+
+.button {
+  border: white solid 1px;
+  border-radius: 8px;
+  color: #000;
+  background-color: #DDD;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-block;
+  user-select: none;
+}
+.button:hover {
+  border: #DDD solid 1px;
+  background-color: #FFF;
+}
+
+#port-tip {
+  background-color: #222;
+  border: black solid 1px;
+  border-radius: 10px;
+  font-style: italic;
+  color: #DFD;
+  padding: 10px;
+}
+
+.porttranssect {
+  padding: 5px;
+  display: inline-block;
+}

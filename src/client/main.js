@@ -275,7 +275,7 @@ TurbulenzEngine.onload = function onloadFn()
     };
   }
 
-  let port_visible = false;
+  let port_visible = null;
   let port_was_home = null;
   let in_port_key;
 
@@ -305,13 +305,14 @@ TurbulenzEngine.onload = function onloadFn()
     let y = Math.floor(hero.y);
     let in_port = map_data[x][y] === 'port';
     if (in_port) {
-      if (!port_visible) {
+      if (port_visible !== true) {
         $('#port').fadeIn();
         port_visible = true;
       }
     } else {
-      if (port_visible) {
+      if (port_visible !== false) {
         $('#port').fadeOut();
+        showField('#port-tip', false);
         port_visible = false;
       }
     }
@@ -385,13 +386,13 @@ TurbulenzEngine.onload = function onloadFn()
 
     if (pd.pop < 3 && pd.ag) {
       showField('#port-tip', true);
-      setField('#port-tip', 'ADVICE: Give at least 3 Population<span class="icon icon-pop"></span> and build a Harvester<span class="icon icon-harv"></span> to generate Food<span class="icon icon-food"></span>');
+      setField('#port-tip', 'ADVICE: Give at least 6 Population<span class="icon icon-pop"></span> and build Harvesters<span class="icon icon-harv"></span> to generate a Food surplus<span class="icon icon-food"></span>');
     } else if (pd.ag && pd.harv < pd.ag && pp.died) {
       showField('#port-tip', true);
       setField('#port-tip', 'ADVICE: Your people are starving build some Harvesters<span class="icon icon-harv"></span> to generate Food<span class="icon icon-food"></span>');
     } else if (is_home_port && free_space === 0 && cargo.pop && cargo.money) {
       showField('#port-tip', true);
-      setField('#port-tip', 'ADVICE: This is your home port, go drop the Population<span class="icon icon-pop"></span> in your Ship\'s Cargo at another port</span>');
+      setField('#port-tip', 'ADVICE: This is your home port, go drop the Population<span class="icon icon-pop"></span> in your Ship\'s Cargo at another port, build them Harvesters<span class="icon icon-harv"></span> and bring back food<span class="icon icon-food"></span></span>');
     } else {
       showField('#port-tip', false);
     }
@@ -412,6 +413,7 @@ TurbulenzEngine.onload = function onloadFn()
   }
 
   $('.porttrans').click(function (ev) {
+    ev.preventDefault();
     let split = ev.target.id.split('-');
     let op = split[0];
     let res = split[1];
